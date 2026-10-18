@@ -22,6 +22,8 @@
 #include <pm.h>
 #include <tests.h>
 
+static uint8_t g_is_video;
+
 // small helper
 static int dtb_valid(const void *p) {
 	return p && __builtin_bswap32(((const uint32_t *)p)[0]) == 0xd00dfeed;
@@ -75,5 +77,16 @@ void nau_start(void *dtb) {
 	/* initialize memory systems */
 	balloc_init((uintptr_t)__kernel_start+KERN_BALLOC_OFFSET, (uintptr_t)__kernel_end);
 
+	/* check if we have a display */
+	g_is_video = arch_check_display();
+	if (!g_is_video) {
+		/* not available */
+		dprintf("init: video not found\n");
+	} else {
+		/* we have it so initialize it */
+		dprintf("init: initializing video\n");
+		arch_init_display();
+	}
+	
 	nau_run_suite();
 }

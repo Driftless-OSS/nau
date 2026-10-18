@@ -18,3 +18,5 @@
 #include <stdint.h>
 
 void arch_serial_putc(char c);
+uint8_t arch_check_display(void);
+void arch_init_display(void);

@@ -1,6 +1,6 @@
 /*
  * NAU Kernel
- * Path: platform/vexpressa15/serial.c
+ * Path: platform/qvirt/serial.c
  *
  * Copyright (c) 2026 Driftless Software. All rights reserved.
  * Property of Driftless Software.
@@ -24,4 +24,15 @@
 
 void arch_serial_putc(char c) {
 	*(volatile uint32_t *)(UART0_BASE) = c;	
+}
+
+uint8_t arch_check_display(void)
+{
+	/* we DO have a display which is ramfb.. but im lazy to do that right now */
+	return 0;
+}
+
+void arch_init_display(void)
+{
+
 }

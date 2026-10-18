@@ -38,3 +38,14 @@ void arch_serial_putc(char c) {
     while (!(UTRSTAT & (1u << 1)));
     UTXH = (uint8_t)c;
 }
+
+uint8_t arch_check_display(void)
+{
+	/* this also does have a display - lcd, but will do it later */
+	return 0;
+}
+
+void arch_init_display(void)
+{
+
+}

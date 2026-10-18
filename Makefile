@@ -51,6 +51,7 @@ ipod-classic-6g: pre_setup
 	arm-none-eabi-gcc -ffreestanding -Wall -Wextra -Werror $(CFLAGS) -mcpu=arm926ej-s -marm -c arch/arm5/exception.c -o build/bex.o
 	
 	arm-none-eabi-gcc -ffreestanding -Wall -Wextra -Werror $(CFLAGS) -c platform/ipc-6g/serial.c -o build/pserial.o
+	arm-none-eabi-gcc -ffreestanding -Wall -Wextra -Werror $(CFLAGS) -c platform/ipc-6g/lcd.c -o build/plcd.o
 	arm-none-eabi-gcc -ffreestanding -Wall -Wextra -Werror $(CFLAGS) -DFALLBACK_RAM_BASE=0x08000000ULL -DFALLBACK_RAM_SIZE=0x4000000ULL \
 	-c kernel/init.c -o build/kinit.o
 	arm-none-eabi-gcc -ffreestanding -Wall -Wextra -Werror $(CFLAGS) -c kernel/debug.c -o build/kdbg.o
@@ -59,10 +60,10 @@ ipod-classic-6g: pre_setup
 
 	arm-none-eabi-gcc -ffreestanding -Wall -Wextra -Werror $(CFLAGS) -c kernel/tests/balloc_test.c -o build/btest.o
 	
-	arm-none-eabi-ld -T platform/ipc-6g/link.ld $(ALL_OBJECTS) -o build/kernel.elf
+	arm-none-eabi-ld -T platform/ipc-6g/link.ld $(ALL_OBJECTS) build/plcd.o -o build/kernel.elf
 	arm-none-eabi-objcopy -O binary build/kernel.elf build/kernel.bin
 	
-	../qemu-ipod-classic/build/qemu-system-arm -machine iPod-Classic -kernel build/kernel.bin -serial null
+	../qemu-ipod-classic/build/qemu-system-arm -machine iPod-Classic -kernel build/kernel.bin -serial null -display sdl
 
 ipod-touch-4g:
 	@echo "NAU support for the iPod Touch 4G is currently not available."
