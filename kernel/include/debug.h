@@ -17,6 +17,8 @@
 
 #include <stdint.h>
 
+#define ALIGN(a, b) (((a) + ((b)-1)) & ~((b)-1))
+
 void dputc(char c);
 void dputs(const char *s);
 

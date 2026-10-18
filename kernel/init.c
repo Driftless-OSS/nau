@@ -19,16 +19,24 @@
 #include <debug.h>
 #include <layout.h>
 #include <fdt.h>
+#include <pm.h>
+#include <tests.h>
 
 // small helper
 static int dtb_valid(const void *p) {
 	return p && __builtin_bswap32(((const uint32_t *)p)[0]) == 0xd00dfeed;
 }
 
+static inline void nau_run_suite(void) {
+#ifdef ENABLE_TEST_SUITE
+	balloc_test_run();
+#endif
+}
+
 void nau_start(void *dtb) {
 	dputs("\nVelocitas/NAU Version 1.0.0\n");
 
-	// kernel size print
+	/* kernel size print */
 	dprintf("Kernel: %p - %p (%zu KB)\n", __kernel_start, __kernel_end,
 			(size_t)(__kernel_end - __kernel_start) / 1024);
 
@@ -38,7 +46,7 @@ void nau_start(void *dtb) {
 	}
 #endif
 
-	// parse the FDT if there is one and find out about memory
+	/* parse the FDT if there is one and find out about memory */
 	if (dtb_valid(dtb)) {
 		uint32_t size = __builtin_bswap32(((uint32_t *)dtb)[1]);
 		dprintf("DTB: %p size=%u\n", dtb, (unsigned int)size);
@@ -63,4 +71,9 @@ void nau_start(void *dtb) {
 			(unsigned long long)(mem[i].base + mem[i].size),
 			(unsigned long long)(mem[i].size >> 20));
 	}
+
+	/* initialize memory systems */
+	balloc_init((uintptr_t)__kernel_start+KERN_BALLOC_OFFSET, (uintptr_t)__kernel_end);
+
+	nau_run_suite();
 }

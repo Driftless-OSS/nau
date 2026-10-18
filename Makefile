@@ -1,5 +1,7 @@
-CFLAGS := -I./arch/include -I./kernel/include -mgeneral-regs-only
+CFLAGS := -I./arch/include -I./kernel/include -mgeneral-regs-only -Wno-error=format
 QEMUFLAGS := -m 1G
+ALL_OBJECTS := build/crt0.o build/bvec.o build/bex.o build/pserial.o build/kinit.o \
+	build/kdbg.o build/kfdt.o build/balloc.o build/btest.o
 
 all:
 
@@ -15,8 +17,12 @@ sgexy: pre_setup
 	arm-none-eabi-gcc -ffreestanding -Wall -Wextra -Werror $(CFLAGS) -DFALLBACK_RAM_BASE=0x40000000ULL -DFALLBACK_RAM_SIZE=0x40000000ULL -c kernel/init.c -o build/kinit.o
 	arm-none-eabi-gcc -ffreestanding -Wall -Wextra -Werror $(CFLAGS) -c kernel/debug.c -o build/kdbg.o
 	arm-none-eabi-gcc -ffreestanding -Wall -Wextra -Werror $(CFLAGS) -c kernel/fdt.c -o build/kfdt.o
-	arm-none-eabi-ld -T platform/sgexy/link.ld build/crt0.o build/bvec.o build/bex.o build/pserial.o build/kinit.o \
-	build/kdbg.o build/kfdt.o -o build/kernel.elf
+	arm-none-eabi-gcc -ffreestanding -Wall -Wextra -Werror $(CFLAGS) -c kernel/mm/bootalloc.c -o build/balloc.o
+
+	# introduce flag eventually for tests
+	arm-none-eabi-gcc -ffreestanding -Wall -Wextra -Werror $(CFLAGS) -c kernel/tests/balloc_test.c -o build/btest.o
+	
+	arm-none-eabi-ld -T platform/sgexy/link.ld $(ALL_OBJECTS) -o build/kernel.elf
 	qemu-system-arm -M smdkc210 -cpu cortex-a9 -kernel build/kernel.elf -nographic $(QEMUFLAGS)
 	# qemu-system-arm -M smdkc210 -cpu cortex-a9 -kernel build/kernel.elf -display none -serial file:out.txt -monitor none -m 1G
 
@@ -30,8 +36,11 @@ qvirt: pre_setup
 	aarch64-linux-gnu-gcc -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -Werror $(CFLAGS) -DDTB_FALLBACK=0x40000000UL -c kernel/init.c -o build/kinit.o
 	aarch64-linux-gnu-gcc -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -Werror $(CFLAGS) -c kernel/debug.c -o build/kdbg.o
 	aarch64-linux-gnu-gcc -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -Werror $(CFLAGS) -c kernel/fdt.c -o build/kfdt.o
-	aarch64-linux-gnu-ld -nostdlib -T platform/qvirt/link.ld build/crt0.o build/bvec.o build/bex.o build/pserial.o build/kinit.o build/kdbg.o \
-	build/kfdt.o -o build/kernel.elf
+	aarch64-linux-gnu-gcc -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -Werror $(CFLAGS) -c kernel/mm/bootalloc.c -o build/balloc.o
+
+	aarch64-linux-gnu-gcc -ffreestanding -nostdlib -nostartfiles -Wall -Wextra -Werror $(CFLAGS) -c kernel/tests/balloc_test.c -o build/btest.o
+	
+	aarch64-linux-gnu-ld -nostdlib -T platform/qvirt/link.ld $(ALL_OBJECTS) -o build/kernel.elf
 	qemu-system-aarch64 -machine virt -cpu cortex-a57 -kernel build/kernel.elf -nographic $(QEMUFLAGS)
 
 ipod-classic-6g: pre_setup
@@ -46,8 +55,11 @@ ipod-classic-6g: pre_setup
 	-c kernel/init.c -o build/kinit.o
 	arm-none-eabi-gcc -ffreestanding -Wall -Wextra -Werror $(CFLAGS) -c kernel/debug.c -o build/kdbg.o
 	arm-none-eabi-gcc -ffreestanding -Wall -Wextra -Werror $(CFLAGS) -c kernel/fdt.c -o build/kfdt.o
-	arm-none-eabi-ld -T platform/ipc-6g/link.ld build/crt0.o build/bvec.o build/bex.o build/pserial.o build/kinit.o \
-	build/kdbg.o build/kfdt.o -o build/kernel.elf
+	arm-none-eabi-gcc -ffreestanding -Wall -Wextra -Werror $(CFLAGS) -c kernel/mm/bootalloc.c -o build/balloc.o
+
+	arm-none-eabi-gcc -ffreestanding -Wall -Wextra -Werror $(CFLAGS) -c kernel/tests/balloc_test.c -o build/btest.o
+	
+	arm-none-eabi-ld -T platform/ipc-6g/link.ld $(ALL_OBJECTS) -o build/kernel.elf
 	arm-none-eabi-objcopy -O binary build/kernel.elf build/kernel.bin
 	
 	../qemu-ipod-classic/build/qemu-system-arm -machine iPod-Classic -kernel build/kernel.bin -serial null
