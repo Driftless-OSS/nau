@@ -75,7 +75,7 @@ void nau_start(void *dtb) {
 	}
 
 	/* initialize memory systems */
-	balloc_init((uintptr_t)__kernel_start+KERN_BALLOC_OFFSET, (uintptr_t)__kernel_end);
+	balloc_init((uintptr_t)__kernel_end, (uintptr_t)mem[0].base+mem[0].size);
 
 	/* check if we have a display */
 	g_is_video = arch_check_display();
